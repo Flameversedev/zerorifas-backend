@@ -89,4 +89,4 @@ res.status(500).json({ error: 'Error al verificar el código.' });
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(Servidor en puerto ${PORT}));
+app.listen(PORT, () => console.log('Servidor en puerto ' + PORT));
