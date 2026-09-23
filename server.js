@@ -1,10 +1,9 @@
-import express from 'express';
-import cors from 'cors';
-import bcrypt from 'bcryptjs';
-import { Resend } from 'resend';
-import pkg from 'pg';
+const express = require('express');
+const cors = require('cors');
+const bcrypt = require('bcryptjs');
+const { Resend } = require('resend');
+const { Pool } = require('pg');
 
-const { Pool } = pkg;
 const app = express();
 
 app.use(cors());
