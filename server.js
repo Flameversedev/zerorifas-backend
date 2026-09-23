@@ -46,4 +46,48 @@ app.post('/api/auth/registro', async (req, res) => {
       from: 'ZeroRifas ',
       to: email,
       subject: 'Código de Verificación - ZeroRifas',
-      html: `
+      html: `¡Hola ${nombre}!
+Tu código de verificación para completar el registro en ZeroRifas es:
+
+${codigoOTP}
+Este código vencerá en 10 minutos.
+
+  `
+});
+
+res.status(201).json({ mensaje: 'Usuario registrado. Revisa tu correo para el código OTP.' });
+} catch (error) {
+console.error(error);
+res.status(500).json({ error: 'Error interno en el servidor.' });
+}
+});
+
+// Verificación de OTP
+app.post('/api/auth/verificar-otp', async (req, res) => {
+const { email, codigoOTP } = req.body;
+
+try {
+const result = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
+if (result.rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado.' });
+
+const usuario = result.rows[0];
+
+if (usuario.codigo_otp !== codigoOTP) {
+  return res.status(400).json({ error: 'Código OTP incorrecto.' });
+}
+
+if (new Date() > new Date(usuario.otp_expira)) {
+  return res.status(400).json({ error: 'El código OTP ha expirado.' });
+}
+
+await pool.query('UPDATE usuarios SET email_verificado = TRUE, codigo_otp = NULL WHERE email = $1', [email]);
+
+res.json({ mensaje: 'Correo verificado con éxito.' });
+} catch (error) {
+console.error(error);
+res.status(500).json({ error: 'Error al verificar el código.' });
+}
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(Servidor en puerto ${PORT}));
