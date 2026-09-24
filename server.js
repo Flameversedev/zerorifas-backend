@@ -46,12 +46,13 @@ app.post('/api/auth/registro', async (req, res) => {
       to: email,
       subject: 'Código de Verificación - ZeroRifas',
       html: `¡Hola ${nombre}!
+
 Tu código de verificación para completar el registro en ZeroRifas es:
 
 ${codigoOTP}
 Este código vencerá en 10 minutos.
 
-  `
+`
 });
 
 res.status(201).json({ mensaje: 'Usuario registrado. Revisa tu correo para el código OTP.' });
@@ -85,6 +86,41 @@ res.json({ mensaje: 'Correo verificado con éxito.' });
 } catch (error) {
 console.error(error);
 res.status(500).json({ error: 'Error al verificar el código.' });
+}
+});
+
+// Inicio de Sesión (Login)
+app.post('/api/auth/login', async (req, res) => {
+const { email, password } = req.body;
+
+try {
+const result = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
+if (result.rows.length === 0) {
+return res.status(404).json({ error: 'Usuario no encontrado.' });
+}
+
+const usuario = result.rows[0];
+
+if (!usuario.email_verificado) {
+  return res.status(400).json({ error: 'Debes verificar tu correo electrónico antes de iniciar sesión.' });
+}
+
+const validPassword = await bcrypt.compare(password, usuario.password_hash);
+if (!validPassword) {
+  return res.status(400).json({ error: 'Contraseña incorrecta.' });
+}
+
+res.json({
+  mensaje: 'Inicio de sesión exitoso.',
+  usuario: {
+    id: usuario.id,
+    nombre: usuario.nombre,
+    email: usuario.email
+  }
+});
+} catch (error) {
+console.error(error);
+res.status(500).json({ error: 'Error al iniciar sesión.' });
 }
 });
 
